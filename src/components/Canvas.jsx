@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const Canvas = () => {
   // states
@@ -8,16 +8,15 @@ const Canvas = () => {
   });
   const [hexSize, setHexSize] = useState(20);
 
-  const [canvasHex, setCanvasHex] = useState({});
+  const canvasHex = useRef();
 
   useEffect(() => {
-    setCanvasHex({
-      width: canvasSize.canvasWidth,
-      height: canvasSize.canvasHeight
-    });
+    console.log(canvasHex.current);
+    const { canvasWidth, canvasHeight } = canvasSize;
+    canvasHex.current.width = canvasWidth;
+    canvasHex.current.height = canvasHeight;
     drawHex(canvasHex, { x: 50, y: 50 });
   }, []);
-  console.log(canvasHex);
 
   // Methods
   const getHexCornerCoord = (center, i) => {
@@ -38,8 +37,7 @@ const Canvas = () => {
   };
 
   const drawLine = (canvasID, start, end) => {
-    canvasID = document.getElementById("canvas");
-    const ctx = canvasID.getContext("2d");
+    const ctx = canvasID.current.getContext("2d");
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
@@ -50,7 +48,7 @@ const Canvas = () => {
   // ======================
   return (
     <div>
-      <canvas ref={() => canvasHex}></canvas>
+      <canvas ref={canvasHex}></canvas>
     </div>
   );
 };
