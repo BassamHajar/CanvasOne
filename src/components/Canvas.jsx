@@ -9,7 +9,6 @@ const Canvas = () => {
   const [hexSize, setHexSize] = useState(20);
   const [hexOrigin, setHexOrigin] = useState({ x: 300, y: 300 });
   const [hexParameters, setHexParameters] = useState({});
-  console.log("state hexParameters", hexParameters);
 
   // UseRef()
   const canvasHex = useRef();
@@ -18,22 +17,33 @@ const Canvas = () => {
   useEffect(() => {
     canvasHex.current.width = canvasSize.canvasWidth;
     canvasHex.current.height = canvasSize.canvasHeight;
-    getHexParameters();
+    setHexParameters(getHexParameters());
     drawHexes();
   }, []);
 
   // ====================== Methods ======================
   const drawHexes = async () => {
-    console.log("hexParameters in drawHexes", hexParameters);
-    const { hexWidth } = hexParameters;
-    console.log("hexWidth", hexWidth);
-    let qLeftSide = Math.round(hexOrigin.x / hexWidth);
-    let qRightSide = Math.round(canvasHex.width - hexOrigin.x / hexWidth);
-    for (let r = -4; r <= 4; r++) {
+    const { canvasHeight, canvasWidth } = canvasSize;
+    const hexParametersAlter = getHexParameters();
+    const { hexWidth, hexHeight } = hexParametersAlter;
+    let qLeftSide = Math.round(hexOrigin.x / hexWidth) * 2;
+    let qRightSide = Math.round(canvasWidth - hexOrigin.x / hexWidth);
+    let rTopSide = Math.round(hexOrigin.y / (hexHeight / 2));
+    let rBottomSide = Math.round(
+      (canvasHeight - hexOrigin.y) / (hexHeight / 2)
+    );
+    for (let r = -rTopSide; r <= rBottomSide; r++) {
       for (let q = -qLeftSide; q <= qRightSide; q++) {
         let center = hexToPixel({ q, r });
-        drawHex(canvasHex, center);
-        drawHexCoordinates(canvasHex, center, { q, r });
+        if (
+          center.x > hexWidth / 2 &&
+          center.x < canvasWidth - hexWidth / 2 &&
+          center.y > hexHeight / 2 &&
+          center.y < canvasHeight - hexHeight / 2
+        ) {
+          drawHex(canvasHex, center);
+          drawHexCoordinates(canvasHex, center, { q, r });
+        }
       }
     }
   };
@@ -51,7 +61,7 @@ const Canvas = () => {
     const hexWidth = (Math.sqrt(3) / 2) * hexHeight;
     const vertDist = (hexHeight * 3) / 4;
     const horizDist = hexWidth;
-    setHexParameters({ hexWidth, hexHeight, vertDist, horizDist });
+    return { hexWidth, hexHeight, vertDist, horizDist };
   };
 
   const hexToPixel = h => {
