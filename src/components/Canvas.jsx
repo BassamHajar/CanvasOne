@@ -1,30 +1,64 @@
 import React, { useState, useEffect, useRef } from "react";
 
 const Canvas = () => {
-  // states
+  // ====================== states ======================
   const [canvasSize, setCanvasSize] = useState({
     canvasWidth: 800,
     canvasHeight: 600
   });
   const [hexSize, setHexSize] = useState(20);
+  const [hexOrigin, setHexOrigin] = useState({ x: 300, y: 300 });
+  const [hexParameters, setHexParameters] = useState({});
+  console.log("state hexParameters", hexParameters);
 
+  // UseRef()
   const canvasHex = useRef();
 
+  // ====================== UseEffect ======================
   useEffect(() => {
-    console.log(canvasHex.current);
-    const { canvasWidth, canvasHeight } = canvasSize;
-    canvasHex.current.width = canvasWidth;
-    canvasHex.current.height = canvasHeight;
-    drawHex(canvasHex, { x: 50, y: 50 });
+    canvasHex.current.width = canvasSize.canvasWidth;
+    canvasHex.current.height = canvasSize.canvasHeight;
+    getHexParameters();
+    drawHexes();
   }, []);
 
-  // Methods
-  const getHexCornerCoord = (center, i) => {
-    let angle_deg = 60 * i - 30;
-    let angle_rad = (Math.PI / 180) * angle_deg;
-    let x = center.x + hexSize * Math.cos(angle_rad);
-    let y = center.y + hexSize * Math.sin(angle_rad);
+  // ====================== Methods ======================
+  const drawHexes = async () => {
+    console.log("hexParameters in drawHexes", hexParameters);
+    const { hexWidth } = hexParameters;
+    console.log("hexWidth", hexWidth);
+    let qLeftSide = Math.round(hexOrigin.x / hexWidth);
+    let qRightSide = Math.round(canvasHex.width - hexOrigin.x / hexWidth);
+    for (let r = -4; r <= 4; r++) {
+      for (let q = -qLeftSide; q <= qRightSide; q++) {
+        let center = hexToPixel({ q, r });
+        drawHex(canvasHex, center);
+        drawHexCoordinates(canvasHex, center, { q, r });
+      }
+    }
+  };
 
+  const getHexCornerCoord = (center, i) => {
+    const angle_deg = 60 * i - 30;
+    const angle_rad = (Math.PI / 180) * angle_deg;
+    const x = center.x + hexSize * Math.cos(angle_rad);
+    const y = center.y + hexSize * Math.sin(angle_rad);
+    return { x, y };
+  };
+
+  const getHexParameters = () => {
+    const hexHeight = hexSize * 2;
+    const hexWidth = (Math.sqrt(3) / 2) * hexHeight;
+    const vertDist = (hexHeight * 3) / 4;
+    const horizDist = hexWidth;
+    setHexParameters({ hexWidth, hexHeight, vertDist, horizDist });
+  };
+
+  const hexToPixel = h => {
+    const size = hexSize;
+    let x =
+      size * (Math.sqrt(3) * h.q + (Math.sqrt(3) / 2) * h.r) + hexOrigin.x;
+    let y = size * ((3 / 2) * h.r) + hexOrigin.y;
     return { x, y };
   };
 
@@ -45,7 +79,13 @@ const Canvas = () => {
     ctx.closePath();
   };
 
-  // ======================
+  const drawHexCoordinates = (canvasHex, center, h) => {
+    const ctx = canvasHex.current.getContext("2d");
+    ctx.fillText(h.q, center.x - 10, center.y);
+    ctx.fillText(h.r, center.x + 7, center.y);
+  };
+
+  // ====================== Return ======================
   return (
     <div>
       <canvas ref={canvasHex}></canvas>
@@ -54,76 +94,3 @@ const Canvas = () => {
 };
 
 export default Canvas;
-
-/*
-const [hexSize, setHexSize] = useState(20);
-  const [onShowCoords, toggleShow] = useState(false);
-  // hexes drawn
-  const [isDrawn, setDrawn] = useState(true);
-
-  useEffect(() => {
-    {
-      isDrawn && drawHexes();
-    }
-  }, []);
-
-  const drawHexes = canvasID => {
-    for (let r = 0; r <= 4; r++) {
-      for (let q = 0; q <= 4; q++) {
-        let center = hexToPixel({ q, r });
-        drawHex(canvasID, center);
-        drawHexCoordinates(canvasID, center, { q, r });
-      }
-    }
-    setDrawn({ isDrawn: false });
-  };
-
-  const drawHex = (canvasID, center) => {
-    for (let i = 0; i < 6; i++) {
-      let start = getHexCornerCoord(center, i);
-      let end = getHexCornerCoord(center, i + 1);
-      drawLine(canvasID, { x: start.x, y: start.y }, { x: end.x, y: end.y });
-    }
-  };
-
-  const getHexCornerCoord = (center, i) => {
-    let angle_deg = 60 * i - 30;
-    let angle_rad = (Math.PI / 180) * angle_deg;
-    let x = center.x + hexSize * Math.cos(angle_rad);
-    let y = center.y + hexSize * Math.sin(angle_rad);
-
-    return { x, y };
-  };
-
-  const hexToPixel = h => {
-    const size = hexSize;
-    let x = size * (Math.sqrt(3) * h.q + (Math.sqrt(3) / 2) * h.r);
-    let y = size * ((3 / 2) * h.r);
-    {
-      onShowCoords && console.log(x, y);
-    }
-    return { x, y };
-  };
-
-  const drawLine = (canvasID, start, end) => {
-    canvasID = document.getElementById("canvas");
-    const ctx = canvasID.getContext("2d");
-    ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    ctx.lineTo(end.x, end.y);
-    ctx.stroke();
-    ctx.closePath();
-  };
-
-  const drawHexCoordinates = (canvasID, center, h) => {
-    canvasID = document.getElementById("canvas");
-    const ctx = canvasID.getContext("2d");
-    ctx.fillText(h.q, center.x + 3, center.y);
-    ctx.fillText(h.r, center.x - 9, center.y);
-  };
-
-  // const clickHex = e => {
-  //   e.preventDefault();
-  //   toggleShow({ onShowCoords: true });
-  // };
-*/
