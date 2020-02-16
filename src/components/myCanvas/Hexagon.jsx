@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-const Canvas = () => {
-  // ====================== states ======================
+export default function Hexagon() {
   const [canvasSize, setCanvasSize] = useState({
     canvasWidth: 800,
     canvasHeight: 600
@@ -10,13 +9,11 @@ const Canvas = () => {
   const [hexOrigin, setHexOrigin] = useState({ x: 300, y: 300 });
   const [hexParameters, setHexParameters] = useState({});
 
-  // UseRef()
-  const canvasHex = useRef();
+  const myCanvas = useRef();
 
-  // ====================== UseEffect ======================
   useEffect(() => {
-    canvasHex.current.width = canvasSize.canvasWidth;
-    canvasHex.current.height = canvasSize.canvasHeight;
+    myCanvas.current.width = canvasSize.canvasWidth;
+    myCanvas.current.height = canvasSize.canvasHeight;
     setHexParameters(getHexParameters());
     drawHexes();
   }, []);
@@ -41,8 +38,8 @@ const Canvas = () => {
           center.y > hexHeight / 2 &&
           center.y < canvasHeight - hexHeight / 2
         ) {
-          drawHex(canvasHex, center);
-          drawHexCoordinates(canvasHex, center, { q, r });
+          drawHex(myCanvas, center);
+          drawHexCoordinates(myCanvas, center, { q, r });
         }
       }
     }
@@ -78,6 +75,7 @@ const Canvas = () => {
       let end = getHexCornerCoord(center, i + 1);
       drawLine(canvasID, { x: start.x, y: start.y }, { x: end.x, y: end.y });
     }
+    // canvasID.addEventListener("click", () => console.log("hi"));
   };
 
   const drawLine = (canvasID, start, end) => {
@@ -89,18 +87,12 @@ const Canvas = () => {
     ctx.closePath();
   };
 
-  const drawHexCoordinates = (canvasHex, center, h) => {
-    const ctx = canvasHex.current.getContext("2d");
+  const drawHexCoordinates = (center, h) => {
+    const ctx = myCanvas.current.getContext("2d");
     ctx.fillText(h.q, center.x - 10, center.y);
     ctx.fillText(h.r, center.x + 7, center.y);
   };
 
   // ====================== Return ======================
-  return (
-    <div>
-      <canvas ref={canvasHex}></canvas>
-    </div>
-  );
-};
-
-export default Canvas;
+  return <canvas ref={myCanvas}></canvas>;
+}

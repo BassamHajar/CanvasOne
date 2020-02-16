@@ -1,11 +1,11 @@
 import React from "react";
 import "./App.css";
-import Canvas from "./components/Canvas";
+import Tiles from "./components/myCanvas/Tiles";
 
 function App() {
   return (
     <div>
-      <Canvas />
+      <Tiles />
     </div>
   );
 }
